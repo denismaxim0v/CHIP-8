@@ -1,5 +1,5 @@
-pub const DISPLAY_WIDTH: u32 = 64;
-pub const DISPLAY_HEIGHT: u32 = 32;
+pub const DISPLAY_WIDTH: usize = 64;
+pub const DISPLAY_HEIGHT: usize = 32;
 pub const ROM_LOCATION: u16 = 0x200; // because the system expects the app to be loaded at 0x200
 pub const FONT_LOCATION: u16 = 0x80; // fonts are expected at 0x80
 pub const FONT_SET: [u8; 80] = [ 
