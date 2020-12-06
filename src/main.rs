@@ -5,50 +5,59 @@ mod display;
 extern crate sdl2;
 extern crate getopts;
 
-use getopts::Options;
-use sdl2::keyboard::Keycode;
+use display::Display;
+use cpu::Cpu;
+
 use sdl2::event::Event;
+use sdl2::keyboard::Keycode;
+
 use std::env;
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
+use std::time::Duration;
 
 
 fn main() {
+    let mut cpu: Cpu;
+    cpu = Cpu::new();
     let args: Vec<String> = env::args().collect();
-    let mut opts = Options::new();
+    let scale: usize = 10;
 
-    let matches = match opts.parse(&args[1..]) {
-        Ok(m) => m,
-        Err(f) => {
-            std::process::exit(1);
-        },
-    };
 
-    let filename = if !matches.free.is_empty() {
-        matches.free[0].clone()
-    } else {
-        std::process::exit(1);
-    };
-
-    let rom = read(&filename);
+    cpu.load_rom(&args[1]);
 
     let sdl_context = sdl2::init().unwrap();
+    let mut display = Display::new(&sdl_context, scale);
     let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut display = display::Display::new(&sdl_context, 2 as usize);
-}
+    let mut quit = false;
 
-fn read<P: AsRef<Path>>(path: P) -> Vec<u8> {
-    let mut buf: Vec<u8> = Vec::new();
+    while quit == false {
+        //Emulation Cycle
+        cpu.emulation_cycle();
 
-    match File::open(path) {
-        Ok(ref mut file) => {
-            file.read_to_end(&mut buf).unwrap();
-        },
-        Err(_) => {
-            std::process::exit(2);
+        //render graphics
+        display.render(&cpu);
+
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit { .. }
+                | Event::KeyDown {
+                    keycode: Some(Keycode::Escape),
+                    ..
+                } => {
+                    quit = true;
+                }
+                Event::KeyDown {
+                    keycode: Some(keycode),
+                    ..
+                } => display.key_press(&mut cpu, keycode),
+                Event::KeyUp {
+                    keycode: Some(keycode),
+                    ..
+                } => display.key_release(&mut cpu, keycode),
+
+                _ => {}
+            }
         }
-    }
 
-    buf
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 600));
+    }
 }

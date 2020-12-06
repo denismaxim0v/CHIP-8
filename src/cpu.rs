@@ -1,9 +1,9 @@
-use crate::consts::{ROM_LOCATION, DISPLAY_WIDTH, DISPLAY_HEIGHT};
+use crate::consts::{ROM_LOCATION, DISPLAY_WIDTH, DISPLAY_HEIGHT, FONT_LOCATION, FONT_SET};
 
 pub struct Cpu {
-  pub index_reg: u16,
-  pub program_counter: u16,
-  pub memory: [u8; 4096],
+  pub index_reg: usize,
+  pub program_counter: usize,
+  pub memory: [usize; 4096],
   pub reg: [u8; 16],
   pub keypad: [bool; 16],
   pub display: [u8; DISPLAY_HEIGHT * DISPLAY_WIDTH],
@@ -14,7 +14,7 @@ pub struct Cpu {
 
 impl Cpu {
   pub fn new() -> Cpu {
-    Cpu {
+    let mut cpu = Self {
       index_reg: 0,
       program_counter: ROM_LOCATION,
       memory: [0; 4096],
@@ -24,6 +24,12 @@ impl Cpu {
       stack: [0; 16],
       stack_pointer: 0,
       delay: 0
+    };
+
+    for x in 0..80 {
+      cpu.memory[FONT_LOCATION + x] = FONT_SET[x];
     }
+
+    cpu 
   }
 }

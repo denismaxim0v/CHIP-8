@@ -25,16 +25,16 @@ impl Display {
           .build()
           .unwrap();
 
-      let mut ui = Display {
+      let mut display = Display {
           display: window.into_canvas().build().unwrap(),
           scale: size,
       };
 
-      ui.display.set_draw_color(Color::RGB(0, 0, 0));
-      ui.display.clear();
-      ui.display.present();
+      display.display.set_draw_color(Color::RGB(0, 0, 0));
+      display.display.clear();
+      display.display.present();
 
-      ui
+      display 
 
     }
     pub fn render(&mut self, chip8: &Cpu) {
@@ -42,8 +42,8 @@ impl Display {
       self.display.clear();
       for i in 0..(DISPLAY_WIDTH*DISPLAY_HEIGHT) {
           let pixel = chip8.display[i];
-          let x = i % DISPLAY_WIDTH * self.scale; //get x position of pixel
-          let y = i / DISPLAY_WIDTH * self.scale; //get y position of pixel
+          let x = i % DISPLAY_WIDTH * self.scale;
+          let y = i / DISPLAY_WIDTH * self.scale;
 
           self.display.set_draw_color(Color::RGB(0, 0, 0));
           if pixel == 1 {
@@ -55,9 +55,9 @@ impl Display {
               y as i32,
               self.scale as u32,
               self.scale as u32,
-          )); //Draw the pixel as a square
+          )); 
       }
 
-      self.display.present(); //display changes in window
+      self.display.present();
   }
 }
