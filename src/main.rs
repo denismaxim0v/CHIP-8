@@ -1,12 +1,12 @@
-mod cpu;
 mod consts;
+mod cpu;
 mod display;
 
-extern crate sdl2;
 extern crate getopts;
+extern crate sdl2;
 
-use display::Display;
 use cpu::Cpu;
+use display::Display;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -14,13 +14,11 @@ use sdl2::keyboard::Keycode;
 use std::env;
 use std::time::Duration;
 
-
 fn main() {
     let mut cpu: Cpu;
     cpu = Cpu::new();
     let args: Vec<String> = env::args().collect();
     let scale: usize = 10;
-
 
     cpu.load_rom(&args[1]);
 
@@ -30,10 +28,8 @@ fn main() {
     let mut quit = false;
 
     while quit == false {
-        //Emulation Cycle
-        cpu.emulation_cycle();
+        //cpu.emulation_cycle();
 
-        //render graphics
         display.render(&cpu);
 
         for event in event_pump.poll_iter() {
