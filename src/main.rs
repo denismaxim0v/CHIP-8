@@ -2,6 +2,7 @@ mod consts;
 mod cpu;
 mod display;
 mod keypad;
+mod instructions;
 
 extern crate getopts;
 extern crate sdl2;
@@ -9,9 +10,11 @@ extern crate sdl2;
 use cpu::Cpu;
 use display::Display;
 use keypad::Keypad;
+use consts::{DISPLAY_HEIGHT, DISPLAY_WIDTH, SCALE};
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::pixels::Color;
 
 use std::env;
 use std::time::Duration;
@@ -19,17 +22,33 @@ use std::time::Duration;
 fn main() {
     let mut cpu: Cpu;
     cpu = Cpu::new();
+
     let args: Vec<String> = env::args().collect();
+
+    let sdl_context = sdl2::init().unwrap();
+    let video_subsystem = sdl_context.video().unwrap();
 
     cpu.load_rom(&args[1]);
 
-    let sdl_context = sdl2::init().unwrap();
+    let height = SCALE as u32 * DISPLAY_HEIGHT as u32;
+    let width = SCALE as u32 * DISPLAY_WIDTH as u32;
+    let window = video_subsystem.window("CHIP8", height, width)
+        .position_centered()
+        .build()
+        .unwrap();
+
+    let mut canvas = window.into_canvas().build().unwrap();
+    canvas.set_draw_color(Color::RGB(0,0,0));
+    canvas.clear();
+    canvas.present();
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut quit = false;
 
+
+
     while quit == false {
-        //cpu.emulation_cycle();
+        cpu.execute_cycle();
 
         for event in event_pump.poll_iter() {
             match event {

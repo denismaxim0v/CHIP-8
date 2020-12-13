@@ -35,14 +35,29 @@ impl Cpu {
 
         cpu
     }
+    pub fn process_instruction(&mut self, opcode: u16) {
+        self.program_counter += 2;
+    }
 
     pub fn load_rom(&mut self, path: &str) {
         let mut rom = File::open(path).expect("Rom was not found");
         let mut buf = Vec::new();
         rom.read_to_end(&mut buf).expect("Error reading the rom");
         for (i, &byte) in buf.iter().enumerate() {
-            println!("{:?}", format!("{:?}", byte));
             self.memory[ROM_LOCATION as usize + i as usize] = byte;
         }
+    }
+    pub fn execute_cycle(&mut self) -> u16 {
+        let opcode: u16 = self.read_word(self.memory, self.program_counter);
+        self.process_instruction(opcode);
+        opcode
+    }
+    pub fn read_word(&mut self, memory: [u8; 4096], index: u16) -> u16 {
+        let upper = self.memory[self.program_counter as usize] as u16;
+        let lower = self.memory[(self.program_counter + 1) as usize] as u16;
+
+        println!("upper << 8 | lower : {:?}", format!("{:?}", upper << 8 | lower));
+        println!("upper | lower : {:?}", format!("{:?}", upper | lower));
+        upper << 8 | lower
     }
 }
