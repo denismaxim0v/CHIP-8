@@ -1,16 +1,16 @@
 mod consts;
 mod cpu;
 mod display;
-mod keypad;
 mod instructions;
+mod keypad;
 
 extern crate getopts;
 extern crate sdl2;
 
+use consts::{DISPLAY_HEIGHT, DISPLAY_WIDTH, SCALE};
 use cpu::Cpu;
 use display::Display;
 use keypad::Keypad;
-use consts::{DISPLAY_HEIGHT, DISPLAY_WIDTH, SCALE};
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -32,20 +32,19 @@ fn main() {
 
     let height = SCALE as u32 * DISPLAY_HEIGHT as u32;
     let width = SCALE as u32 * DISPLAY_WIDTH as u32;
-    let window = video_subsystem.window("CHIP8", height, width)
+    let window = video_subsystem
+        .window("CHIP8", height, width)
         .position_centered()
         .build()
         .unwrap();
 
     let mut canvas = window.into_canvas().build().unwrap();
-    canvas.set_draw_color(Color::RGB(0,0,0));
+    canvas.set_draw_color(Color::RGB(0, 0, 0));
     canvas.clear();
     canvas.present();
 
     let mut event_pump = sdl_context.event_pump().unwrap();
     let mut quit = false;
-
-
 
     while quit == false {
         cpu.execute_cycle();
