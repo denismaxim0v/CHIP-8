@@ -49,7 +49,7 @@ impl Cpu {
         }
     }
     pub fn execute_cycle(&mut self) {
-        let opcode: u16 = self.read_word(self.memory, self.program_counter);
+        let opcode: u16 = self.read();
         self.process_instruction(opcode);
     }
     pub fn decrement_timers(&mut self) {
@@ -101,7 +101,7 @@ impl Cpu {
             (0x6, _, _, _) => self.ld(x, kk),
             // ADD Vx, byte
             (0x7, _, _, _) => {
-                self.reg[x] += kk;
+                self.reg[x] = self.reg[x].wrapping_add(kk);
             }
             // LD Vx, Vy
             (0x8, _, _, 0x0) => self.ld(x, vy),
@@ -203,19 +203,13 @@ impl Cpu {
 
     pub fn sub(&mut self, x: usize, y: usize) {
         let (res, overflow) = self.reg[x].overflowing_sub(self.reg[y]);
-        match overflow {
-            true => self.reg[0xF] = 0,
-            false => self.reg[0xF] = 1,
-        }
+        self.reg[0xF] = overflow as u8;
         self.reg[x] = res;
     }
 
     pub fn subn(&mut self, x: usize, y: usize) {
         let (res, overflow) = self.reg[x].overflowing_sub(self.reg[y]);
-        match overflow {
-            true => self.reg[0xF] = 0,
-            false => self.reg[0xF] = 1,
-        }
+        self.reg[0xF] = overflow as u8;
         self.reg[x] = res;
     }
 
@@ -296,7 +290,8 @@ impl Cpu {
             }
         }
     }
-    pub fn read_word(&mut self, memory: [u8; 4096], index: u16) -> u16 {
-        (memory[index as usize] as u16) << 8 | (memory[(index + 1) as usize] as u16)
+    pub fn read(&mut self) -> u16 {
+        (self.memory[self.program_counter as usize] as u16) << 8
+            | (self.memory[(self.program_counter + 1) as usize] as u16)
     }
 }
