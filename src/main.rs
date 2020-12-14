@@ -1,7 +1,6 @@
 mod consts;
 mod cpu;
 mod display;
-mod instructions;
 mod keypad;
 
 extern crate getopts;

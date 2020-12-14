@@ -44,9 +44,13 @@ impl Cpu {
             (opcode & 0x00F0) >> 4,
             opcode & 0x000F,
         );
+        let vx = self.reg[nibbles.2 as usize];
+        let vy = self.reg[nibbles.3 as usize];
         match nibbles {
             // CLS
-            (0, 0, 0xE, 0) => self.clear_display(),
+            (0, 0, 0xE, 0) => {
+                self.display.clear();
+            }
             // RET
             (0, 0, 0xE, 0xE) => self.ret(),
             // JP addr
@@ -55,13 +59,13 @@ impl Cpu {
             (0x2, 0, 0, 0) => self.call(opcode),
             // SE Vx, byte
             (0x3, _, _, _) => self.se(
-                self.reg[nibbles.2 as usize],
+                vx,
                 self.reg[(opcode & 0x00FF) as usize],
             ),
             // SNE Vx, byte
             (0x4, _, _, _) => self.sne(opcode),
             // SE Vx, Vy
-            (0x5, _, _, _) => self.se(self.reg[nibbles.2 as usize], self.reg[nibbles.3 as usize]),
+            (0x5, _, _, _) => self.se(vx, vy),
             // LD Vx, byte
             (0x6, _, _, _) => self.ld(
                 self.reg[nibbles.2 as usize],
@@ -73,33 +77,23 @@ impl Cpu {
                 self.reg[(opcode & 0x0FF) as usize],
             ),
             // LD Vx, Vy
-            (0x8, _, _, 0x0) => self.ld(self.reg[nibbles.2 as usize], self.reg[nibbles.3 as usize]),
+            (0x8, _, _, 0x0) => self.ld(vx, vy),
             // OR Vx, Vy
-            (0x8, _, _, 0x1) => self.or(self.reg[nibbles.2 as usize], self.reg[nibbles.3 as usize]),
+            (0x8, _, _, 0x1) => self.or(vx, vy),
             // AND Vx, Vy
-            (0x8, _, _, 0x2) => {
-                self.and(self.reg[nibbles.2 as usize], self.reg[nibbles.3 as usize])
-            }
+            (0x8, _, _, 0x2) => self.and(vx, vy),
             // XOR Vx, Vy
-            (0x8, _, _, 0x3) => {
-                self.xor(self.reg[nibbles.2 as usize], self.reg[nibbles.3 as usize])
-            }
+            (0x8, _, _, 0x3) => self.xor(vx, vy),
             // ADD Vx, Vy
-            (0x8, _, _, 0x4) => {
-                self.add(self.reg[nibbles.2 as usize], self.reg[nibbles.3 as usize])
-            }
+            (0x8, _, _, 0x4) => self.add(vx, vy),
             // SUB Vx, Vy
-            (0x8, _, _, 0x5) => {
-                self.sub(self.reg[nibbles.2 as usize], self.reg[nibbles.3 as usize])
-            }
+            (0x8, _, _, 0x5) => self.sub(vx, vy),
             // SHR Vx, {, Vy}
             // If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. Then Vx is divided by 2.
             // TODO: the heck?
             (0x8, _, _, 0x6) => self.shr(),
             // SUBN Vx, Vy
-            (0x8, _, _, 0x7) => {
-                self.subn(self.reg[nibbles.2 as usize], self.reg[nibbles.3 as usize])
-            }
+            (0x8, _, _, 0x7) => self.subn(vx, vy),
             // SHL Vx, {, Vy}
             // TODO: sorcery
             (0x8, _, _, 0xE) => self.shl(),
@@ -137,6 +131,35 @@ impl Cpu {
             (0xF, _, 0x6, 0x5) => self.ld(opcode),
         }
         self.program_counter += 2;
+    }
+
+    pub fn ret(&mut self) {
+        self.program_counter -= 1;
+        self.stack[self.program_counter as usize];
+    }
+
+    pub fn jp(&mut self, opcode: u16) {
+        let nnn = opcode & 0x0FFF;
+        self.program_counter = nnn;
+    }
+    
+    pub fn call(&mut self, opcode: u16) {
+        let nnn = opcode & 0x0FFF;
+        self.stack[self.program_counter as usize] = self.program_counter;
+        self.stack_pointer += 1;
+        self.program_counter = nnn;
+    }
+
+    pub fn se(&mut self, reg1: u8, reg2: u8) {
+        self.program_counter += if reg1 == reg2 {2} else {0};
+    }
+
+    pub fn sne(&mut self, reg1: u8, reg2: u8) {
+        self.program_counter += if reg1 != reg2 {2} else {0};
+    }
+
+    pub fn ld(&mut self, opcode: u16) {
+        
     }
 
     pub fn load_rom(&mut self, path: &str) {
