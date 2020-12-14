@@ -1,5 +1,5 @@
 pub struct Keypad {
-    keys: [bool; 16],
+    pub keys: [bool; 16],
 }
 
 impl Keypad {

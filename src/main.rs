@@ -14,69 +14,80 @@ use keypad::Keypad;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
+use sdl2::rect::Rect;
 
 use std::env;
 use std::time::Duration;
 
 fn main() {
-    let mut cpu: Cpu;
-    cpu = Cpu::new();
-
-    let args: Vec<String> = env::args().collect();
-
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
+    let mut cpu = Cpu::new();
 
-    cpu.load_rom(&args[1]);
-
-    let height = SCALE as u32 * DISPLAY_HEIGHT as u32;
-    let width = SCALE as u32 * DISPLAY_WIDTH as u32;
-    let window = video_subsystem
-        .window("CHIP8", height, width)
+    cpu.load_rom();
+ 
+    let height =  SCALE * DISPLAY_WIDTH;
+    let width =  SCALE * DISPLAY_HEIGHT;
+    let window = video_subsystem.window("Chip 8 Emulator", height as u32, width as u32)
         .position_centered()
         .build()
         .unwrap();
 
     let mut canvas = window.into_canvas().build().unwrap();
+
     canvas.set_draw_color(Color::RGB(0, 0, 0));
     canvas.clear();
     canvas.present();
 
     let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut quit = false;
-
-    while quit == false {
-        cpu.execute_cycle();
-
+    'running: loop {
+        // canvas.clear();
         for event in event_pump.poll_iter() {
             match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => {
-                    quit = true;
-                }
-                Event::KeyDown {
-                    keycode: Some(keycode),
-                    ..
-                } => match keycode_map(keycode) {
-                    Some(keycode) => cpu.keypad.key_down(keycode),
-                    None => {}
+                Event::Quit {..} |
+                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                    break 'running
                 },
-                Event::KeyUp {
-                    keycode: Some(keycode),
-                    ..
-                } => match keycode_map(keycode) {
-                    Some(keycode) => cpu.keypad.key_down(keycode),
-                    None => {}
+                Event::KeyDown { keycode: Some(keycode), .. } => {
+                    match keycode_map(keycode) {
+                        Some(key) => { cpu.keypad.key_down(key) },
+                        None => {}
+                    }
                 },
-
+                Event::KeyUp { keycode: Some(keycode), .. } => {
+                    match keycode_map(keycode) {
+                        Some(key) => { cpu.keypad.key_up(key) },
+                        None => {}
+                    }
+                },
                 _ => {}
             }
         }
 
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 600));
+        for _ in 0..8 { cpu.execute_cycle(); }
+        cpu.decrement_timers();
+
+        for y in 0..(DISPLAY_HEIGHT as u32) {
+            for x in 0..(DISPLAY_WIDTH as u32) {
+                let idx = y * DISPLAY_WIDTH as u32 + x;
+                canvas.set_draw_color(color(cpu.display.memory[idx as usize]));
+                
+                let _ = canvas.fill_rect(
+                    Rect::new((SCALE as u32 * x) as i32 - 1, (SCALE as u32 * y) as i32 - 1, SCALE as u32, SCALE as u32)
+                );
+            }
+        }
+
+        canvas.present();
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+    }
+}
+
+fn color(value: bool) -> Color {
+    if value {
+        Color::RGB(0, 204, 204)
+    } else {
+        Color::RGBA(0, 0, 0, 51)
     }
 }
 
