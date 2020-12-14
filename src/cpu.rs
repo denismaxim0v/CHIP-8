@@ -101,9 +101,8 @@ impl Cpu {
             (0x6, _, _, _) => self.ld(x, kk),
             // ADD Vx, byte
             (0x7, _, _, _) => {
-                println!("{:?}", format!("{:?}{:?}", self.reg[x], kk));
                 self.reg[x] += kk;
-            },
+            }
             // LD Vx, Vy
             (0x8, _, _, 0x0) => self.ld(x, vy),
             // OR Vx, Vy
@@ -117,13 +116,10 @@ impl Cpu {
             // SUB Vx, Vy
             (0x8, _, _, 0x5) => self.sub(x, y),
             // SHR Vx, {, Vy}
-            // If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. Then Vx is divided by 2.
-            // TODO: the heck?
             (0x8, _, _, 0x6) => self.shr(x, vx),
             // SUBN Vx, Vy
             (0x8, _, _, 0x7) => self.subn(x, y),
             // SHL Vx, {, Vy}
-            // TODO: sorcery
             (0x8, _, _, 0xE) => self.shl(x, vx),
             // SNE Vx, Vy
             (0x9, _, _, 0x0) => self.sne(vx, vy),
@@ -142,7 +138,7 @@ impl Cpu {
             // LD Vx, DT
             (0xF, _, 0x0, 0x7) => self.ld(x, self.delay),
             // LD Vx, k
-            (0xF, _, 0x0, 0xA) => self.fx0a(x), //diff
+            (0xF, _, 0x0, 0xA) => self.fx0a(x),
             // LD DT, Vx
             (0xF, _, 0x1, 0x5) => {
                 self.delay = vx;
@@ -154,14 +150,14 @@ impl Cpu {
             // ADD I, Vx
             (0xF, _, 0x1, 0xE) => self.index_reg += vx as u16,
             // LD F, Vx
-            (0xF, _, 0x2, 0x9) => self.fx29(vx), // diff
+            (0xF, _, 0x2, 0x9) => self.fx29(vx),
             // LD B, Vx
-            (0xF, _, 0x3, 0x3) => self.fx33(vx), // diff
+            (0xF, _, 0x3, 0x3) => self.fx33(vx),
             // LD [I], Vx
-            (0xF, _, 0x5, 0x5) => self.fx55(x), // diff
+            (0xF, _, 0x5, 0x5) => self.fx55(x),
             // LD Vx, [I]
-            (0xF, _, 0x6, 0x5) => self.fx65(x), // diff
-            (_, _, _, _) => (),
+            (0xF, _, 0x6, 0x5) => self.fx65(x),
+            _ => (),
         }
     }
 
@@ -290,7 +286,7 @@ impl Cpu {
 
     pub fn load_rom(&mut self) {
         self.reset();
-        let data = include_bytes!("roms/games/PONG.ch8");
+        let data = include_bytes!("roms2/INVADERS");
         for (i, &byte) in data.iter().enumerate() {
             let addr = 0x200 + i;
             if addr < 4096 {

@@ -1,10 +1,6 @@
 extern crate sdl2;
 
-use sdl2::pixels::Color;
-use sdl2::rect::Rect;
-
 use crate::consts::{DISPLAY_HEIGHT, DISPLAY_WIDTH};
-use crate::cpu::Cpu;
 
 pub struct Display {
     pub memory: [bool; 2048],
